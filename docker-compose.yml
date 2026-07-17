@@ -1,0 +1,60 @@
+# =====================================================================
+# ABC Hospital Survey System — Docker Compose
+# Local development & Coolify reference
+# =====================================================================
+
+services:
+  # PostgreSQL Database
+  survey-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: survey
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-survey}
+      POSTGRES_DB: survey
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U survey"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  survey-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    depends_on:
+      survey-db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://survey:${DB_PASSWORD:-survey}@survey-db:5432/survey
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 8h
+      EVOLUTION_API_URL: ${EVOLUTION_API_URL:-}
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
+      EVOLUTION_WEBHOOK_SECRET: ${EVOLUTION_WEBHOOK_SECRET:-}
+      APP_URL: ${APP_URL:-http://localhost:3001}
+    ports:
+      - "3000:3000"
+
+  # Frontend SPA
+  survey-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3001:3000"
+
+volumes:
+  pgdata:

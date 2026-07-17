@@ -1,13 +1,79 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import request from "supertest";
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import pg from "pg";
 
 import { apiRouter } from "../src/server/routes";
-import { setDB, hashPassword } from "../src/server/utils/db";
-import type { DBData } from "../src/server/types";
+import { pool } from "../src/server/db/pool";
+import { hashPassword } from "../src/server/utils/db";
+import fs from "fs";
+import path from "path";
+
+// Apply schema before all tests
+const SCHEMA_PATH = path.resolve(__dirname, "../src/server/db/schema.sql");
+
+beforeAll(async () => {
+  const schema = fs.readFileSync(SCHEMA_PATH, "utf-8");
+  await pool.query(schema);
+});
+
+// Clean all tables between tests
+beforeEach(async () => {
+  await pool.query("DELETE FROM answers");
+  await pool.query("DELETE FROM whatsapp_logs");
+  await pool.query("DELETE FROM surveys");
+  await pool.query("DELETE FROM questions");
+  await pool.query("DELETE FROM categories");
+  await pool.query("DELETE FROM templates");
+  await pool.query("DELETE FROM users");
+
+  // Reset sequences
+  await pool.query("SELECT setval('users_id_seq', 0, false)");
+  await pool.query("SELECT setval('templates_id_seq', 0, false)");
+  await pool.query("SELECT setval('categories_id_seq', 0, false)");
+  await pool.query("SELECT setval('questions_id_seq', 0, false)");
+  await pool.query("SELECT setval('surveys_id_seq', 0, false)");
+  await pool.query("SELECT setval('answers_id_seq', 0, false)");
+
+  // Seed test data
+  const now = new Date().toISOString();
+
+  await pool.query(
+    `INSERT INTO users (id, name, username, password, role, created_at) VALUES
+     (1, 'Admin', 'admin', $1, 'Admin', $2),
+     (2, 'Manager', 'manager', $3, 'Manager', $2),
+     (3, 'Agent', 'agent', $4, 'Agent', $2)`,
+    [hashPassword("admin123"), now, hashPassword("manager123"), hashPassword("agent123")],
+  );
+
+  await pool.query(
+    `INSERT INTO templates (id, title, is_active, created_at) VALUES (1, 'In-Patient', true, $1)`,
+    [now],
+  );
+
+  await pool.query(
+    `INSERT INTO categories (id, name_english, name_arabic) VALUES (1, 'Medical', 'طبي')`,
+  );
+
+  await pool.query(
+    `INSERT INTO questions (id, template_id, text, category, priority, created_at)
+     VALUES (1, 1, 'السؤال 1', 'Medical', 'High', $1)`,
+    [now],
+  );
+
+  // Reset sequences after explicit inserts
+  await pool.query("SELECT setval('users_id_seq', GREATEST((SELECT MAX(id) FROM users), 1))");
+  await pool.query("SELECT setval('templates_id_seq', GREATEST((SELECT MAX(id) FROM templates), 1))");
+  await pool.query("SELECT setval('categories_id_seq', GREATEST((SELECT MAX(id) FROM categories), 1))");
+  await pool.query("SELECT setval('questions_id_seq', GREATEST((SELECT MAX(id) FROM questions), 1))");
+});
+
+afterAll(async () => {
+  await pool.end();
+});
 
 function createTestApp() {
   const app = express();
@@ -22,36 +88,12 @@ function createTestApp() {
   return app;
 }
 
-function buildSeed(): DBData {
-  const now = new Date().toISOString();
-  return {
-    users: [
-      { id: 1, name: "Admin", username: "admin", password: hashPassword("admin123"), role: "Admin", createdAt: now },
-      { id: 2, name: "Manager", username: "manager", password: hashPassword("manager123"), role: "Manager", createdAt: now },
-      { id: 3, name: "Agent", username: "agent", password: hashPassword("agent123"), role: "Agent", createdAt: now },
-    ],
-    templates: [
-      { id: 1, title: "In-Patient", isActive: true, createdAt: now },
-    ],
-    questions: [
-      { id: 1, templateId: 1, text: "السؤال 1", category: "Medical", priority: "High", createdAt: now },
-    ],
-    surveys: [],
-    answers: [],
-    categories: [
-      { id: 1, nameEnglish: "Medical", nameArabic: "طبي" },
-    ],
-    whatsappLogs: [],
-  };
-}
-
 let app: express.Application;
 let tokenAdmin: string;
 let tokenManager: string;
 let tokenAgent: string;
 
 beforeEach(async () => {
-  setDB(buildSeed());
   app = createTestApp();
   const adminRes = await request(app).post("/api/auth/login").send({ username: "admin", password: "admin123" });
   tokenAdmin = `Bearer ${adminRes.body.token}`;

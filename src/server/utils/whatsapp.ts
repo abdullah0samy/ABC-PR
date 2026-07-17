@@ -1,8 +1,8 @@
 import { randomBytes } from "crypto";
 import { config } from "../config";
-import { getDB, saveDB } from "./db";
+import { whatsappRepo } from "../repositories";
 import { logger } from "./logger";
-import type { Survey, WhatsappLog } from "../types";
+import type { Survey } from "../types";
 
 /** Fire WhatsApp apology (fire-and-forget, but with timeout & logged failures). */
 export async function triggerWhatsAppApology(survey: Survey): Promise<void> {
@@ -12,18 +12,13 @@ export async function triggerWhatsAppApology(survey: Survey): Promise<void> {
     `وتحت رعاية الطبيب المعالج (${survey.doctorName}). ` +
     `سيتواصل معك أحد مدراء الأقسام فوراً للاستماع لك وحل المشكلة بشكل نهائي. شكراً لمساعدتنا في تحسين خدماتنا.`;
 
-  const db = getDB();
   const logId = randomBytes(6).toString("hex").toUpperCase();
-  const log: WhatsappLog = {
+  await whatsappRepo.create({
     id: logId,
     phoneNumber: survey.phoneNumber,
     message: apologyText,
-    sentAt: new Date().toISOString(),
     medicalNumber: survey.medicalNumber,
-    status: "مرسلة",
-  };
-  db.whatsappLogs.unshift(log);
-  saveDB(db);
+  });
 
   // Outbound send to Evolution API with timeout — never block the response.
   void sendToEvolution(survey.phoneNumber, apologyText, logId).catch((err) => {

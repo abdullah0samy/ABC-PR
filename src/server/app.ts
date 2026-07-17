@@ -9,7 +9,8 @@ import { createServer as createViteServer } from "vite";
 import { logger } from "./utils/logger";
 import { apiRouter } from "./routes";
 import { config } from "./config";
-import { migrateLegacyPasswords } from "./utils/db";
+import { pool, closePool } from "./db/pool";
+import { runMigration } from "./db/migrate";
 
 export function createApp() {
   const app = express();
@@ -42,12 +43,15 @@ export function createApp() {
     }),
   );
 
-  // Legacy password migration on first boot (idempotent).
-  try {
-    migrateLegacyPasswords();
-  } catch (err) {
-    logger.warn({ err }, "Legacy password migration skipped");
-  }
+  // Health check endpoint (for Docker HEALTHCHECK)
+  app.get("/health", async (_req, res) => {
+    try {
+      await pool.query("SELECT 1");
+      res.json({ status: "ok", db: "connected" });
+    } catch {
+      res.status(503).json({ status: "error", db: "disconnected" });
+    }
+  });
 
   // API routes
   app.use("/api", apiRouter);
@@ -57,11 +61,19 @@ export function createApp() {
     res.status(404).json({ error: "Not found." });
   });
 
-  // SPA / Vite middleware handled by startServer (not here) — except static fallback.
   return app;
 }
 
 export async function startServer(app = createApp()) {
+  // Initialize PostgreSQL (schema + migration)
+  try {
+    await runMigration();
+    logger.info("PostgreSQL initialized");
+  } catch (err) {
+    logger.fatal({ err }, "PostgreSQL migration failed — refusing to start");
+    process.exit(1);
+  }
+
   if (config.nodeEnv !== "production") {
     try {
       const vite = await createViteServer({
@@ -93,6 +105,15 @@ export async function startServer(app = createApp()) {
     }
     res.status(500).json({ error: "Internal server error." });
   });
+
+  // Graceful shutdown
+  const shutdown = async () => {
+    logger.info("Shutting down...");
+    await closePool();
+    process.exit(0);
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 
   return new Promise<void>((resolve) => {
     app.listen(config.port, "0.0.0.0", () => {

@@ -1,7 +1,7 @@
 export const translations = {
   ar: {
     hospitalName: "مستشفى ABC",
-    appSubtitle: "نظام قياس رضا المتعاملين (PR System)",
+    appSubtitle: "نظام استبيان رضا المرضى",
     searchPlaceholder: "البحث بالرقم الطبي أو اسم المريض...",
     searchBtn: "بحث",
     adminRole: "مدير النظام (Admin)",
@@ -115,7 +115,7 @@ export const translations = {
   },
   en: {
     hospitalName: "ABC Hospital",
-    appSubtitle: "Visitor Satisfaction (PR System)",
+    appSubtitle: "Patient Satisfaction Survey System",
     searchPlaceholder: "Search by MRN, patient name, doctor...",
     searchBtn: "Search",
     adminRole: "Technical Admin",

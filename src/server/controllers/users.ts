@@ -1,61 +1,51 @@
 import { Router } from "express";
-import { getDB, saveDB, hashPassword, migrateLegacyPasswords } from "../utils/db";
 import { validate } from "../middleware/validate";
-import { requireAdmin, requireAnyAuthenticated } from "../middleware/auth";
+import { requireAdmin } from "../middleware/auth";
 import { createUserSchema } from "../schemas";
-import type { User } from "../types";
+import { userRepo } from "../repositories";
+import { hashPassword } from "../utils/db";
 
 export const usersRouter = Router();
 
-// Admin can list users; authenticated users also reach this — restrict to admin only.
-usersRouter.get("/", requireAdmin, (_req, res) => {
-  const db = getDB();
-  res.json(db.users.map(({ password, ...u }) => u));
+usersRouter.get("/", requireAdmin, async (_req, res) => {
+  const users = await userRepo.listAll();
+  res.json(users);
 });
 
-// Migration endpoint-ish: ensure existing seed passwords are hashed before they are read.
-usersRouter.post("/", requireAdmin, validate({ body: createUserSchema }), (req, res) => {
+usersRouter.post("/", requireAdmin, validate({ body: createUserSchema }), async (req, res) => {
   const { name, username, password, role } = req.body;
-  const db = getDB();
-  if (db.users.some((u) => u.username.toLowerCase() === username.toLowerCase())) {
+  const existing = await userRepo.findByUsername(username);
+  if (existing) {
     res.status(400).json({ error: "اسم المستخدم هذا مسجل بالفعل." });
     return;
   }
-  const newUser: User = {
-    id: db.users.length ? Math.max(...db.users.map((u) => u.id)) + 1 : 1,
+  const newUser = await userRepo.create({
     name,
     username,
     password: hashPassword(password),
     role,
-    createdAt: new Date().toISOString(),
-  };
-  db.users.push(newUser);
-  saveDB(db);
-  const { password: _pw, ...publicUser } = newUser;
-  res.status(201).json(publicUser);
+  });
+  res.status(201).json(newUser);
 });
 
-usersRouter.delete("/:id", requireAdmin, (req, res) => {
+usersRouter.delete("/:id", requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "Invalid id." });
     return;
   }
-  const db = getDB();
-  // Prevent deleting the only remaining admin to avoid lock-out.
-  if (!db.users.some((u) => u.id === id)) {
+  const user = await userRepo.findById(id);
+  if (!user) {
     res.status(404).json({ error: "User not found." });
     return;
   }
-  const remainingAdmins = db.users.filter((u) => u.role === "Admin" && u.id !== id);
-  if (remainingAdmins.length === 0 && db.users.find((u) => u.id === id)?.role === "Admin") {
-    res.status(400).json({ error: "يجب وجود مدير نظام واحد على الأقل." });
-    return;
+  if (user.role === "Admin") {
+    const adminCount = await userRepo.countAdmins();
+    if (adminCount <= 1) {
+      res.status(400).json({ error: "يجب وجود مدير نظام واحد على الأقل." });
+      return;
+    }
   }
-  db.users = db.users.filter((u) => u.id !== id);
-  saveDB(db);
+  await userRepo.deleteById(id);
   res.json({ message: "تم حذف المستخدم بنجاح." });
 });
-
-// Ensure plaintext seed passwords get migrated at boot.
-void migrateLegacyPasswords;

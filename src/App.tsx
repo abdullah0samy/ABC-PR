@@ -54,6 +54,8 @@ import {
 } from "./types";
 import { api, ApiError, getStoredUser, persistSession, clearSession } from "./api";
 import WhatsAppLogsView from "./pages/WhatsAppLogs";
+import CreateSurveyPage from "./pages/CreateSurveyPage";
+import ArchivePage from "./pages/ArchivePage";
 
 export default function App() {
   // Translate helper using our modular translations file
@@ -768,15 +770,15 @@ export default function App() {
 
         <div className="w-full max-w-[420px] space-y-6 animate-in fade-in duration-500">
           {/* Logo & Medical Branding */}
-          <div className="text-center space-y-4 flex flex-col items-center">
+          <div className="text-center space-y-3 flex flex-col items-center">
             <Logo size="lg" showText={false} />
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white flex items-center justify-center gap-2">
-                <span className="text-[#986435] dark:text-[#eedaa2]">ABC</span>
-                <span className="text-slate-500 dark:text-slate-300">Hospital</span>
+              <h1 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">
+                ABC Hospital
               </h1>
-              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase mt-1">PR System</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">{t("loginSubtitle")}</p>
+              <p className="text-sm font-bold text-blue-600 dark:text-blue-400 tracking-wider mt-0.5">Survey System</p>
+              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mt-1">نظام استبيان رضا المرضى</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2">{t("loginSubtitle")}</p>
             </div>
           </div>
 
@@ -859,6 +861,10 @@ export default function App() {
 
           <div className="text-center">
             <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">{t("loginWarning")}</p>
+          </div>
+
+          <div className="text-center pt-2">
+            <p className="text-[10px] font-semibold text-slate-300 dark:text-slate-600">© ABCH IT Team @2026</p>
           </div>
         </div>
       </div>
@@ -957,8 +963,13 @@ export default function App() {
       <div className="flex-1 flex flex-col lg:flex-row relative">
         
         {/* Navigation Sidebar Drawer for desktop screens */}
-        <aside className="hidden lg:flex flex-col bg-white dark:bg-slate-900 border-e border-slate-200 dark:border-slate-800 w-64 pt-8 p-4 shrink-0 space-y-6">
-          <h3 className="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider">
+        <aside className="hidden lg:flex flex-col bg-white dark:bg-slate-900 border-e border-slate-200 dark:border-slate-800 w-64 pt-6 p-4 shrink-0 space-y-4">
+          {/* Sidebar Brand */}
+          <div className="px-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <Logo size="sm" showText={true} />
+          </div>
+
+          <h3 className="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
             {t("systemNavTitle")}
           </h3>
           <nav className="space-y-1">
@@ -1051,21 +1062,21 @@ export default function App() {
           </nav>
 
           {/* Quick System Statistics Panel widget inside sidebar */}
-          <div className="mt-auto p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-200/60 dark:border-slate-800">
-            <p className="text-[10px] text-slate-400 dark:text-slate-550 font-bold uppercase tracking-wider mb-2">
-              {isEnglish ? "TECHNICAL PLATFORM HEALTH" : "الحالة التقنية للمنظومة"}
+          <div className="mt-auto p-3 bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-800/80 dark:to-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-700/60 space-y-2">
+            <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+              {isEnglish ? "System Status" : "حالة المنظومة"}
             </p>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t("systemOkIndicator")}</span>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">{t("systemOkIndicator")}</span>
             </div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t("agentIndicator")}</span>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+              <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">{t("agentIndicator")}</span>
             </div>
-            <p className="text-[9px] text-slate-450 dark:text-slate-500 leading-normal font-medium mt-1 border-t border-slate-200/50 dark:border-slate-820 pt-1">
+            <p className="text-[8px] text-slate-400 dark:text-slate-500 leading-normal border-t border-slate-200/60 dark:border-slate-700/60 pt-2">
               {isEnglish 
-                ? "Evolution Active Webhooks automatically monitor unhappy scores." 
+                ? "Evolution API monitors feedback in real-time." 
                 : "بوابة Evolution API تعمل تلقائياً للتحذيرات الفورية."}
             </p>
           </div>
@@ -1078,393 +1089,8 @@ export default function App() {
           {/* VIEW: DASHBOARD (ADMIN & MANAGER)          */}
           {/* ========================================== */}
           {activeView === "dashboard" && user.role !== "Agent" && (
-            <div className="space-y-8 animate-in fade-in duration-300">
-              
-              {/* Header Title & Date Prompt */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-2 no-print">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-50 dark:text-white">لوحة تقارير وإحصائيات الرضا</h2>
-                  <p className="text-sm font-medium text-slate-400">مراقبة التغذية الراجعة المرضية الحية لغرف التنويم والعيادات</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <div className="flex items-center gap-2 bg-white text-slate-600 py-2.5 px-4 rounded-xl border border-slate-200 text-xs font-semibold shadow-xs">
-                    <Calendar size={15} className="text-[#00448c]" />
-                    <span>توقيت النظام المعتمد: {new Date().toLocaleDateString("ar-SA", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                  </div>
-                  
-                  {/* Export Options */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleExportExcel}
-                      className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs transition-all duration-200 hover:shadow-md cursor-pointer active:scale-95 text-center"
-                      title="تحميل البيانات وصيغ الرضا بملف Excel متوافق مع اللغة العربية"
-                    >
-                      <FileSpreadsheet size={15} />
-                      <span>تصدير إكسل (Excel)</span>
-                    </button>
-                    <button
-                      onClick={() => setIsExportPdfModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 bg-[#00448c] hover:bg-opacity-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs transition-all duration-200 hover:shadow-md cursor-pointer active:scale-95 text-center"
-                      title="إنشاء تقرير إداري مفصل وتصديره لملف PDF فوري"
-                    >
-                      <Printer size={15} />
-                      <span>تنزيل تقرير إداري (PDF)</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dynamic Time Period & Segment Filter Block */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-xs space-y-4 no-print transition-all duration-300">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 block"></span>
-                    <h3 className="font-bold text-xs text-slate-800 dark:text-white">{t("filterByDate")}</h3>
-                  </div>
-                  <span className="text-[10px] text-slate-401 dark:text-slate-400 font-semibold">{isEnglish ? "Instant interactive update of all clinical charts & insights" : "تحديث فوري وتفاعلي لكافة المخططات والمؤشرات السريرية"}</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                  {/* Start Date filter */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-410 block">{t("startDate")}</label>
-                    <input
-                      type="date"
-                      value={statsStartDate}
-                      onChange={(e) => setStatsStartDate(e.target.value)}
-                      className="w-full text-xs h-10 bg-slate-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl px-3 focus:bg-white dark:focus:bg-slate-755 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold cursor-pointer text-center"
-                    />
-                  </div>
-
-                  {/* End Date filter */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-410 block">{t("endDate")}</label>
-                    <input
-                      type="date"
-                      value={statsEndDate}
-                      onChange={(e) => setStatsEndDate(e.target.value)}
-                      className="w-full text-xs h-10 bg-slate-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl px-3 focus:bg-white dark:focus:bg-slate-755 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold cursor-pointer text-center"
-                    />
-                  </div>
-
-                  {/* Clinic Type filter */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-410 block">{isEnglish ? "Service & Clinic Type" : "نوع الخدمة والعيادة"}</label>
-                    <select
-                      value={statsClinicType}
-                      onChange={(e) => setStatsClinicType(e.target.value)}
-                      className="w-full text-xs h-10 bg-slate-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-xl px-3 focus:bg-white dark:focus:bg-slate-755 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-semibold cursor-pointer text-center"
-                    >
-                      <option value="الكل" className="dark:bg-slate-900">{isEnglish ? "All Services (الكل)" : "جميع الخدمات المتاحة (الكل)"}</option>
-                      <option value="In-Patient" className="dark:bg-slate-900">{isEnglish ? "In-Patient (تنويم)" : "القسم الداخلي - غرف التنويم"}</option>
-                      <option value="Out-Patient" className="dark:bg-slate-900">{isEnglish ? "Out-Patient (عيادات)" : "القسم الخارجي - العيادات"}</option>
-                    </select>
-                  </div>
-
-                  {/* Action Filters controller */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStatsStartDate("");
-                        setStatsEndDate("");
-                        setStatsClinicType("الكل");
-                        triggerNotification("success", isEnglish ? "Filters successfully reset!" : "تم إعادة تعيين مرشحات الفترة الزمنية.");
-                      }}
-                      className="flex-1 h-10 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 hover:shadow-xs active:scale-95"
-                    >
-                      <span>{t("resetFilters")}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Quick Period Selection Buttons */}
-                <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-450">{t("quickPeriods")}:</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuickRange("today");
-                      triggerNotification("success", isEnglish ? "Filtered for today!" : "تم التصفية لتاريخ اليوم!");
-                    }}
-                    className={`px-3 py-1 bg-blue-50 hover:bg-blue-100/80 dark:bg-slate-800 text-blue-700 dark:text-blue-300 dark:hover:bg-slate-750 border border-slate-200/50 dark:border-slate-700 rounded-full text-[10px] font-bold transition-all cursor-pointer active:scale-95`}
-                  >
-                    {t("todayLabel")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuickRange("week");
-                      triggerNotification("success", isEnglish ? "Filtered for this week!" : "تم التصفية للأيام السبعة الأخيرة!");
-                    }}
-                    className={`px-3 py-1 bg-blue-50 hover:bg-blue-100/80 dark:bg-slate-800 text-blue-700 dark:text-blue-300 dark:hover:bg-slate-750 border border-slate-200/50 dark:border-slate-700 rounded-full text-[10px] font-bold transition-all cursor-pointer active:scale-95`}
-                  >
-                    {t("last7Days")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuickRange("last30");
-                      triggerNotification("success", isEnglish ? "Filtered for last 30 days!" : "تم التصفية للثلاثين يوماً الأخيرة!");
-                    }}
-                    className={`px-3 py-1 bg-blue-50 hover:bg-blue-100/80 dark:bg-slate-800 text-blue-700 dark:text-blue-300 dark:hover:bg-slate-750 border border-slate-200/50 dark:border-slate-700 rounded-full text-[10px] font-bold transition-all cursor-pointer active:scale-95`}
-                  >
-                    {t("last30Days")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuickRange("month");
-                      triggerNotification("success", isEnglish ? "Filtered for this month!" : "تم التصفية لبداية الشهر الحالي!");
-                    }}
-                    className={`px-3 py-1 bg-blue-50 hover:bg-blue-100/80 dark:bg-slate-800 text-blue-700 dark:text-blue-300 dark:hover:bg-slate-750 border border-slate-200/50 dark:border-slate-700 rounded-full text-[10px] font-bold transition-all cursor-pointer active:scale-95`}
-                  >
-                    {isEnglish ? "This Month" : "الشهر الحالي"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuickRange("all");
-                      triggerNotification("success", isEnglish ? "Showing all-time records!" : "عرض السجلات لكافة الأوقات!");
-                    }}
-                    className={`px-3 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:hover:bg-slate-750 border border-slate-200/50 dark:border-slate-700 rounded-full text-[10px] font-bold transition-all cursor-pointer active:scale-95`}
-                  >
-                    {t("allTime")}
-                  </button>
-                </div>
-              </div>
-
-              {/* Aggregated Counters Bento Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <FileText size={22} />
-                  </div>
-                  <div className="text-right leading-none">
-                    <span className="block text-slate-400 text-[10px] font-bold mb-1">إجمالي التقييمات</span>
-                    <span className="text-2xl font-bold text-slate-800">{analytics?.totalSurveys || surveys.length}</span>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <Smile size={22} />
-                  </div>
-                  <div className="text-right leading-none">
-                    <span className="block text-slate-400 text-[10px] font-bold mb-1">المرضى الراضين</span>
-                    <span className="text-2xl font-bold text-emerald-600">{analytics?.satisfiedCount || surveys.filter(s => s.isSatisfied).length}</span>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
-                  <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                    <Frown size={22} />
-                  </div>
-                  <div className="text-right leading-none">
-                    <span className="block text-slate-400 text-[10px] font-bold mb-1">استبقاءات حرجة</span>
-                    <span className="text-2xl font-bold text-rose-600">{analytics?.unsatisfiedCount || surveys.filter(s => !s.isSatisfied).length}</span>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <MessageSquare size={22} />
-                  </div>
-                  <div className="text-right leading-none">
-                    <span className="block text-slate-400 text-[10px] font-bold mb-1">تنبيهات واتساب صادرة</span>
-                    <span className="text-2xl font-bold text-amber-600">{whatsappLogs.length}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Live Visualization: Gauge + Bar Chart */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
-                {/* Overall Gauge Chart Display (4 cols) */}
-                <div className="lg:col-span-5 bg-white border border-slate-200 p-6 rounded-2xl shadow-xs flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden">
-                  <h3 className="text-xs font-bold text-slate-500 tracking-wider">مؤشر الرضا التراكمي العام</h3>
-                  
-                  {/* Custom CSS Hand-Tailored Dial Gauge */}
-                  <div className="relative w-56 h-28 overflow-hidden flex items-end justify-center">
-                    <div className="absolute top-0 w-56 h-56 rounded-full border-[22px] border-slate-100"></div>
-                    <div 
-                      className="absolute top-0 w-56 h-56 rounded-full border-[22px] border-transparent border-b-blue-600 border-l-blue-600 transition-transform duration-1000 ease-out"
-                      style={{
-                        transform: `rotate(${Math.min(180, Math.max(0, ((analytics?.overallSatisfactionPercent || 87) / 100) * 180 + 45))}deg)`
-                      }}
-                    ></div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-1.5 z-10 space-y-0.5">
-                      <span className="text-4xl font-bold text-slate-800 leading-none">{analytics?.overallSatisfactionPercent || 87}%</span>
-                      <span className="text-[10px] font-semibold text-blue-600">نسبة الرضا الإجمالية</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-6 text-[10px] font-bold text-slate-500 pt-2">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 bg-blue-600 rounded-full"></span>
-                      <span>راضي تماماً</span>
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 bg-slate-200 rounded-full"></span>
-                      <span>مستاء / متأخر</span>
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-medium">النسبة مبنية على تجميع وتقييم الاستبيانات النشطة لجميع الأقسام الطبية للـ 30 يوماً الماضية.</p>
-                </div>
-
-                {/* Categories Bar Chart & Dynamic Dropdown Filter (7 cols) */}
-                <div className="lg:col-span-7 bg-white border border-slate-200 p-6 rounded-2xl shadow-xs space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-800">مقارنة الرضا حسب الفئات الطبية والضيافة</h3>
-                      <p className="text-[10px] text-slate-400 font-bold">عزل وتحليل أداء كل قسم بشكل مستقل</p>
-                    </div>
-                    
-                    {/* Advanced Dropdown filter for Chart Category isolation */}
-                    <div className="relative shrink-0">
-                      <SlidersHorizontal size={14} className="absolute right-3 top-2.5 text-slate-550 pointer-events-none" />
-                      <select
-                        value={analyticsCategoryFilter}
-                        onChange={(e) => setAnalyticsCategoryFilter(e.target.value)}
-                        className="appearance-none bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 py-1.5 pr-8 pl-5 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-right cursor-pointer"
-                      >
-                        <option value="All">جميع الأقسام</option>
-                        <option value="Medical">طبي - Medical</option>
-                        <option value="Nursing">تمريض - Nursing</option>
-                        <option value="Hospitality">ضيافة - Hospitality</option>
-                        <option value="Security">أمن - Security</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Render simulated dynamic scale bar graph chart */}
-                  <div className="space-y-4 pt-2">
-                    {getIsolatedStats().map((stat, i) => (
-                      <motion.div 
-                        key={i} 
-                        className="space-y-1.5"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                      >
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-slate-700">{stat.titleArabic} ({stat.category})</span>
-                          <span className="font-bold text-blue-600">{stat.averageScore} / 5 ({stat.averagePercent}%)</span>
-                        </div>
-                        <motion.div 
-                          className="w-full bg-slate-100 h-2 rounded-full overflow-hidden relative group"
-                          whileHover={{ scale: 1.02 }}
-                        >
-                          <div 
-                            className={`h-full rounded-full transition-all duration-700 ${
-                              stat.averagePercent >= 80 ? "bg-blue-600" :
-                              stat.averagePercent >= 60 ? "bg-amber-500" : "bg-rose-500"
-                            }`}
-                            style={{ width: `${stat.averagePercent}%` }}
-                          ></div>
-                          {/* Interactive Tooltip */}
-                          <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[10px] rounded px-2 py-1 -top-8 left-0 whitespace-nowrap z-50 pointer-events-none shadow-lg">
-                            {stat.titleArabic} ({stat.category}): {stat.totalAnswersCount} إجابة ({stat.averagePercent}%)
-                          </div>
-                        </motion.div>
-                      </motion.div>
-                    ))}
-                    <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-slate-500 pt-3 border-t border-slate-50">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 bg-blue-600 rounded-full"></span>
-                        <span>عالي (80%+)</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 bg-amber-500 rounded-full"></span>
-                        <span>متوسط (60%+)</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 bg-rose-500 rounded-full"></span>
-                        <span>منخفض</span>
-                      </div>
-                    </div>
-                    {getIsolatedStats().length === 0 && (
-                      <div className="text-center py-12 text-slate-400 text-xs font-medium">البيانات غير متوفرة لهذا التصفيف المختار.</div>
-                    )}
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-[11px] leading-relaxed text-slate-500 font-medium">
-                    * يتم احتساب المتوسط العام الحسابي المرجح تلقائياً من إجابات الأسئلة الديناميكية المسجلة لكل فئة.
-                  </div>
-                </div>
-              </div>
-
-              {/* Critical Unsatisfied Alerts Table (Manager Action Trigger) */}
-              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-                <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-rose-600 flex items-center gap-2">
-                      <AlertTriangle size={18} className="shrink-0" />
-                      <span>جدول الحالات الحرجة والمستاءة (تتطلب تدخل فوري)</span>
-                    </h3>
-                    <p className="text-[10px] text-slate-400 font-bold mt-1">قائمة المرضى المسجلين كـ "غير راضٍ" أو لا يوصون بالمستشفى لمتابعة الشكاوى</p>
-                  </div>
-                  <button 
-                    onClick={() => { clearArchiveFilters(); setArchiveSatisfaction("Unsatisfied"); setActiveView("archive"); }}
-                    className="shrink-0 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg border border-blue-100 cursor-pointer active:scale-95 transition-all"
-                  >
-                    عرض كامل الحالات المتأثرة
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-right text-xs">
-                    <thead className="bg-slate-50 text-slate-550 font-bold uppercase border-b border-slate-200">
-                      <tr>
-                        <th className="px-6 py-4">الرقم الطبي</th>
-                        <th className="px-6 py-4">اسم المريض المستاء</th>
-                        <th className="px-6 py-4">الطبيب المعالج</th>
-                        <th className="px-6 py-4">تاريخ الزيارة</th>
-                        <th className="px-6 py-4">التوصية بالعائلة</th>
-                        <th className="px-6 py-4">حالة الاستبيان</th>
-                        <th className="px-6 py-4 text-center">تفاصيل الشكوى</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-150">
-                      {(analytics?.criticalCases || []).map((patient, i) => (
-                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 font-semibold text-slate-800">{patient.medicalNumber}</td>
-                          <td className="px-6 py-4 font-bold text-slate-800">{patient.patientName}</td>
-                          <td className="px-6 py-4 text-slate-500 font-medium">{patient.doctorName}</td>
-                          <td className="px-6 py-4 text-slate-500 font-medium">
-                            {new Date(patient.enterDate).toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" })}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center gap-1 font-bold text-rose-600 bg-rose-50 py-0.5 px-2 rounded-full border border-rose-100">
-                              <ThumbsDown size={12} />
-                              لا يرشح المستشفى
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="bg-rose-50 text-rose-700 font-bold px-2.5 py-1 rounded-full text-[10px] border border-rose-100 animate-pulse">حرجة جداً</span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <button 
-                              onClick={() => loadSurveyDetail(patient.id)}
-                              className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer"
-                            >
-                              عرض التفاصيل والاعتذار
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {(analytics?.criticalCases || []).length === 0 && (
-                        <tr>
-                          <td colSpan={7} className="px-6 py-12 text-center text-slate-400 font-bold text-xs">
-                            ممتاز! لا يوجد أي حالات مستاءة أو حرجة معلقة حالياً في المستشفى.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <div className="text-center py-20 text-gray-400">
+              <p>Dashboard view — pending extraction to component</p>
             </div>
           )}
 
@@ -1820,250 +1446,13 @@ export default function App() {
           {/* VIEW: ARCHIVE GRID & SEARCH FILTER LIST    */}
           {/* ========================================== */}
           {activeView === "archive" && (
-            <div className="space-y-8 animate-in fade-in duration-300">
-              
-              {/* Archive Title */}
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-bold text-slate-800">أرشيف وسجلات رضا المرضى والزوار</h2>
-                  <p className="text-sm font-medium text-slate-500">مراجعة والبحث عن أي استبيان سابق وتصفية البيانات التفصيلية للمرضى</p>
-                </div>
-                <div className="text-xs font-semibold text-slate-600 bg-white py-2 px-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-1.5 shrink-0">
-                  <span className="w-2.5 h-2.5 bg-blue-600 rounded-full"></span>
-                  <span>العدد الكلي: {totalSurveysCount} تقييم مسجل</span>
-                </div>
-              </div>
-
-              {/* Advanced Real-Time Search & Multiple Quick Filters Bar */}
-              <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs space-y-4">
-                
-                {/* Search Bar Input */}
-                <div className="relative">
-                  <Search className="absolute right-3.5 top-3.5 text-slate-400" size={18} />
-                  <input
-                    type="text"
-                    value={archiveSearch}
-                    onChange={(e) => { setArchiveSearch(e.target.value); setCurrentPage(1); }}
-                    placeholder="البحث الذكي بالمستشفى... (اكتب اسم المريض، الرقم الطبي، الطبيب المعالج، أو رقم الجوال)"
-                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl pr-11 pl-4 text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-550/20 focus:border-blue-600 transition-all text-right placeholder:text-slate-400"
-                  />
-                </div>
-
-                {/* Sub Filters Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
-                  {/* Clinic Type selective dropdown */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 px-1">نوع العيادة</label>
-                    <select
-                      value={archiveClinicType}
-                      onChange={(e) => { setArchiveClinicType(e.target.value); setCurrentPage(1); }}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-right cursor-pointer"
-                    >
-                      <option value="الكل">جميع العيادات</option>
-                      <option value="In-Patient">تنويم داخلي (In-Patient)</option>
-                      <option value="Out-Patient">عيادات خارجية (Out-Patient)</option>
-                    </select>
-                  </div>
-
-                  {/* Interview Type selective dropdown */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 px-1">طريقة المقابلة</label>
-                    <select
-                      value={archiveInterviewType}
-                      onChange={(e) => { setArchiveInterviewType(e.target.value); setCurrentPage(1); }}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-right cursor-pointer"
-                    >
-                      <option value="الكل">جميع المقابلات</option>
-                      <option value="Call">مكالمة هاتفية (Call)</option>
-                      <option value="In Person">مقابلة حضورية (In Person)</option>
-                    </select>
-                  </div>
-
-                  {/* Satisfaction Filter selective dropdown */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 px-1">حالة رضا الزائر</label>
-                    <select
-                      value={archiveSatisfaction}
-                      onChange={(e) => { setArchiveSatisfaction(e.target.value); setCurrentPage(1); }}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-right cursor-pointer"
-                    >
-                      <option value="الكل">الكل</option>
-                      <option value="Satisfied">راضٍ 😊</option>
-                      <option value="Unsatisfied">غير راضٍ أو حرجة 🙁</option>
-                    </select>
-                  </div>
-
-                  {/* Custom Date Range Picker: Start Date */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 px-1">من تاريخ</label>
-                    <input
-                      type="date"
-                      value={archiveStartDate}
-                      onChange={(e) => { setArchiveStartDate(e.target.value); setCurrentPage(1); }}
-                      className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-right"
-                    />
-                  </div>
-
-                  {/* Custom Date Range Picker: End Date */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 px-1">إلى تاريخ</label>
-                    <input
-                      type="date"
-                      value={archiveEndDate}
-                      onChange={(e) => { setArchiveEndDate(e.target.value); setCurrentPage(1); }}
-                      className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-right"
-                    />
-                  </div>
-                </div>
-
-                {/* Actions reset row */}
-                <div className="flex justify-end pt-2">
-                  <button
-                    onClick={clearArchiveFilters}
-                    className="bg-slate-50 hover:bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border border-slate-200"
-                  >
-                    تصفير الفلاتر وإعادة الضبط
-                  </button>
-                </div>
-              </div>
-
-              {/* Surveys Grid Card mapping */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {surveys.map((survey) => {
-                  return (
-                    <div
-                      key={survey.id}
-                      className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-blue-200 hover:shadow-xs transition-all relative overflow-hidden group flex flex-col justify-between space-y-4"
-                    >
-                      {/* Left vertical visual color code key */}
-                      <div className={`absolute top-0 left-0 w-1.5 h-full ${
-                        survey.isSatisfied ? "bg-emerald-500" : "bg-rose-500"
-                      }`}></div>
-
-                      {/* Card Header information */}
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="text-right">
-                            <h3 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors">{survey.patientName}</h3>
-                            <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
-                              دخل بتاريخ: {new Date(survey.enterDate).toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" })}
-                            </span>
-                          </div>
-                          
-                          <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold border ${
-                            survey.clinicType === "In-Patient"
-                              ? "bg-blue-50 text-blue-700 border-blue-105"
-                              : "bg-amber-50 text-amber-700 border-amber-105"
-                          }`}>
-                            {survey.clinicType === "In-Patient" ? "تنويم داخلي" : "عيادات خارجية"}
-                          </span>
-                        </div>
-
-                        {/* Patient descriptive fields */}
-                        <div className="space-y-1.5 pt-1 text-[11px] text-slate-600 border-t border-slate-100">
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-slate-400">الرقم الطبي:</span>
-                            <span className="font-bold text-slate-800">{survey.medicalNumber}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-slate-400">رقم الهاتف:</span>
-                            <span className="font-bold text-slate-800" dir="ltr">{survey.phoneNumber}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-slate-400">الغرفة/القسم:</span>
-                            <span className="font-medium text-slate-800">{survey.roomNumber}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-slate-400">الدكتور المعالج:</span>
-                            <span className="font-medium text-slate-800">{survey.doctorName}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Card Footer status actions */}
-                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xl">{survey.isSatisfied ? "😊" : "🙁"}</span>
-                          <span className={`text-[10px] font-bold ${
-                            survey.isSatisfied ? "text-emerald-600" : "text-rose-600"
-                          }`}>
-                            {survey.isSatisfied ? "راضٍ تماماً" : "غير راضٍ عن الخدمة"}
-                          </span>
-                        </div>
-
-                        <button 
-                          onClick={() => loadSurveyDetail(survey.id)}
-                          className="text-blue-600 hover:underline text-xs font-semibold flex items-center gap-1 group-hover:-translate-x-1 transition-transform duration-200"
-                        >
-                          <span>عرض الإجابات</span>
-                          <ChevronLeft size={16} />
-                        </button>
-                        
-                        {user?.role === "Admin" && (
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setSurveyToEdit(survey)}
-                              className="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 text-[10px] font-bold cursor-pointer"
-                            >
-                              تعديل
-                            </button>
-                            <button
-                              onClick={() => setSurveyToDeleteId(survey.id)}
-                              className="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 text-[10px] font-bold cursor-pointer"
-                            >
-                              حذف
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {surveys.length === 0 && (
-                  <div className="col-span-full bg-white border border-dashed border-slate-200 p-12 rounded-2xl text-center text-slate-400 text-xs font-semibold">
-                    لا يوجد استبيانات مسجلة تطابق محددات البحث والفواجع التصفيفية المختارة.
-                  </div>
-                )}
-              </div>
-
-              {/* Archive Pagination HUD */}
-              {totalPages > 1 && (
-                <div className="mt-8 flex justify-center">
-                  <nav className="flex items-center gap-1.5">
-                    <button
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
-                    >
-                      <ChevronRight size={18} />
-                    </button>
-                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pNum) => (
-                      <button
-                        key={pNum}
-                        onClick={() => setCurrentPage(pNum)}
-                        className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold text-xs transition-all pointer-events-auto cursor-pointer ${
-                          currentPage === pNum
-                            ? "bg-blue-600 text-white shadow-sm"
-                            : "bg-white border border-slate-200 text-slate-650 hover:bg-slate-50"
-                        }`}
-                      >
-                        {pNum}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                  </nav>
-                </div>
-              )}
-
-            </div>
+                        <ArchivePage
+              user={user}
+              archiveSearch={archiveSearch}
+              setArchiveSearch={setArchiveSearch}
+              triggerNotification={triggerNotification}
+              onEditSurvey={setSurveyToEdit}
+            />
           )}
 
           {/* ========================================== */}
@@ -2270,6 +1659,13 @@ export default function App() {
           )}
 
         </main>
+
+        {/* Global Copyright Footer */}
+        <footer className="w-full text-center py-4 border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
+          <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 tracking-wide">
+            © ABCH IT Team @2026 — ABC Hospital Survey System
+          </p>
+        </footer>
       </div>
 
       {/* ========================================== */}

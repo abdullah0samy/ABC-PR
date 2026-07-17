@@ -22,11 +22,12 @@ export const config = {
     apiUrl: process.env.EVOLUTION_API_URL ?? "https://api.evolution.example.com/message/sendText",
     apiKey: process.env.EVOLUTION_API_KEY ?? "",
     webhookSecret: process.env.EVOLUTION_WEBHOOK_SECRET ?? "",
-    // Outbound fetch timeout (AbortController) in milliseconds.
     fetchTimeoutMs: parseInt(process.env.EVOLUTION_FETCH_TIMEOUT_MS ?? "8000", 10),
   },
-  // Absolute path to JSON db file (cwd-independent).
-  dbFile: path.resolve(process.env.DB_FILE ?? path.join(process.cwd(), "db_data.json")),
+  // PostgreSQL connection string.
+  databaseUrl: process.env.DATABASE_URL ?? "postgresql://survey:survey@localhost:5432/survey",
+  // Optional JSON seed file path (used only for initial migration).
+  dbFile: process.env.DB_FILE,
   // Body size limit for JSON requests.
   bodyLimit: "1mb",
 };
