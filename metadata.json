@@ -1,0 +1,6 @@
+{
+  "name": "نظام رضا الزوار - مستشفى نزل تك",
+  "description": "نظام متكامل وذكي لقياس وإدارة رضا الزوار والمرضى بمستشفى نزل تك مع ميزة الإشعارات الفورية لواتساب ومؤشرات مخصصة للأقسام والأدوار الإدارية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans Arabic", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+body {
+  font-family: var(--font-sans);
+  direction: rtl;
+  text-align: right;
+}
+
+@media print {
+  header, aside, nav, footer, .fixed, .no-print, [role="dialog"] {
+    display: none !important;
+  }
+  /* Keep main visible (so admin screens can print when needed). */
+  
+  /* Render the printable report */
+  .print-only {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    font-family: "IBM Plex Sans Arabic", sans-serif !important;
+    background: white !important;
+    color: #0f172a !important;
+    direction: rtl !important;
+    text-align: right !important;
+    padding: 20px !important;
+    margin: 0 !important;
+  }
+
+  /* Ensure grid and table layouts display properly in print mode */
+  .print-only .grid {
+    display: grid !important;
+  }
+  .print-only table {
+    display: table !important;
+  }
+  .print-only thead {
+    display: table-header-group !important;
+  }
+  .print-only tbody {
+    display: table-row-group !important;
+  }
+  .print-only tr {
+    display: table-row !important;
+  }
+  .print-only th, .print-only td {
+    display: table-cell !important;
+  }
+  .print-only .flex {
+    display: flex !important;
+  }
+
+
+  /* Page break rules */
+  .page-break-before {
+    page-break-before: always;
+  }
+  
+  /* High fidelity print settings */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Screen Mode default: Hide print-only components */
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+

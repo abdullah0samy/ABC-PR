@@ -1,0 +1,14 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Runtime JSON database (contains plaintext-equivalent password hashes & PII)
+db_data.json
+db_data.json.bak
+*.db
+*.sqlite
