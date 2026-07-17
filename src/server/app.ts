@@ -70,12 +70,28 @@ export function createApp() {
 }
 
 export async function startServer(app = createApp()) {
-  // Initialize PostgreSQL (schema + migration)
-  try {
-    await runMigration();
-    logger.info("PostgreSQL initialized");
-  } catch (err) {
-    logger.fatal({ err }, "PostgreSQL migration failed — refusing to start");
+  // Initialize PostgreSQL with retry (database may take time to be ready in Docker)
+  const MAX_RETRIES = 10;
+  const RETRY_DELAY_MS = 3000;
+  let lastErr: unknown;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await runMigration();
+      logger.info("PostgreSQL initialized");
+      lastErr = null;
+      break;
+    } catch (err) {
+      lastErr = err;
+      logger.warn({ err, attempt, maxRetries: MAX_RETRIES }, `Database connection failed (attempt ${attempt}/${MAX_RETRIES}), retrying in ${RETRY_DELAY_MS / 1000}s...`);
+      if (attempt < MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+      }
+    }
+  }
+
+  if (lastErr) {
+    logger.fatal({ err: lastErr }, "PostgreSQL migration failed after all retries — refusing to start");
     process.exit(1);
   }
 
