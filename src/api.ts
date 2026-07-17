@@ -59,6 +59,8 @@ export class ApiError extends Error {
   }
 }
 
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || "";
+
 export async function apiFetch<T>(input: RequestInfo, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(init.headers ?? {});
@@ -68,7 +70,8 @@ export async function apiFetch<T>(input: RequestInfo, init: RequestInit = {}): P
   if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
-  const res = await fetch(input, { ...init, headers });
+  const url = typeof input === "string" ? `${API_BASE}${input}` : input;
+  const res = await fetch(url, { ...init, headers });
   let data: any = null;
   const ct = res.headers.get("content-type") ?? "";
   if (ct.includes("application/json")) {

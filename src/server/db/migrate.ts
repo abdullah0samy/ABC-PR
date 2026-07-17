@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import bcrypt from "bcryptjs";
 import { pool } from "./pool";
 import { logger } from "../utils/logger";
 import type { DBData } from "../types";
@@ -185,6 +186,53 @@ async function resetSequences(): Promise<void> {
   }
 }
 
+/** Seed default data (users, templates, categories) when no JSON file exists. */
+async function seedDefaults(): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const pw = bcrypt.hashSync("change-me-admin", 12);
+    const pwMgr = bcrypt.hashSync("change-me-manager", 12);
+    const pwAgent = bcrypt.hashSync("change-me-agent", 12);
+
+    await client.query(
+      `INSERT INTO users (name, username, password, role) VALUES
+        ($1, $2, $3, 'Admin'),
+        ($4, $5, $6, 'Manager'),
+        ($7, $8, $9, 'Agent')
+       ON CONFLICT (username) DO NOTHING`,
+      [
+        "عبد الله سامي", "admin", pw,
+        "منى خالد", "manager", pwMgr,
+        "خالد العتيبي", "agent", pwAgent,
+      ],
+    );
+
+    await client.query(
+      `INSERT INTO templates (title) VALUES ('In-Patient'), ('Out-Patient') ON CONFLICT DO NOTHING`,
+    );
+
+    await client.query(
+      `INSERT INTO categories (name_english, name_arabic) VALUES
+        ('Medical', 'طبي'),
+        ('Nursing', 'تمريض'),
+        ('Hospitality', 'ضيافة'),
+        ('Security', 'أمن')
+       ON CONFLICT (name_english) DO NOTHING`,
+    );
+
+    await client.query("COMMIT");
+    logger.info("Default seed data inserted (users, templates, categories)");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    logger.error({ err }, "Failed to seed default data");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 /** Main migration entry point — safe to call on every boot. */
 export async function runMigration(): Promise<void> {
   logger.info("Starting PostgreSQL migration...");
@@ -202,7 +250,9 @@ export async function runMigration(): Promise<void> {
   // 3. Try to import from JSON seed file
   const seedData = readJsonSeed();
   if (!seedData) {
-    logger.info("No JSON seed file found — seeding default data via schema defaults");
+    logger.info("No JSON seed file found — seeding default data");
+    await seedDefaults();
+    await resetSequences();
     return;
   }
 
