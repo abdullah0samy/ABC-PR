@@ -745,7 +745,7 @@ export default function App() {
   // Render Login Panel if unauthorized
   if (!user) {
     return (
-      <div className={`min-h-screen flex items-center justify-center p-4 selection:bg-blue-100 relative overflow-hidden font-sans transition-colors duration-200 ${isDarkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`} dir={isEnglish ? "ltr" : "rtl"}>
+      <div className={`h-screen flex items-center justify-center p-4 selection:bg-blue-100 relative overflow-hidden font-sans transition-colors duration-200 ${isDarkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`} dir={isEnglish ? "ltr" : "rtl"}>
         {/* Top Floating Language and Theme bar for the login page */}
         <div className="absolute top-6 right-6 left-6 flex justify-end items-center gap-2">
           {/* Theme Toggler */}
@@ -873,10 +873,10 @@ export default function App() {
 
 
   return (
-    <div className={`min-h-screen text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-105 antialiased transition-colors duration-200 ${isDarkMode ? "dark bg-slate-950" : "bg-slate-50"}`} dir={isEnglish ? "ltr" : "rtl"}>
+    <div className={`h-screen overflow-hidden text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-105 antialiased transition-colors duration-200 ${isDarkMode ? "dark bg-slate-950" : "bg-slate-50"}`} dir={isEnglish ? "ltr" : "rtl"}>
       {/* Toast Notification HUD */}
       {notification && (
-        <div className="fixed top-6 left-6 z-[200] max-w-sm animate-in slide-in-from-left duration-300">
+        <div className={`fixed top-6 start-6 z-[200] max-w-sm animate-in duration-300 ${isEnglish ? "slide-in-from-left" : "slide-in-from-right"}`}>
           <div className={`p-4 rounded-xl shadow-md border flex items-center gap-3 ${
             notification.type === "success" 
               ? "bg-emerald-600 border-emerald-500 text-white" 
@@ -889,7 +889,7 @@ export default function App() {
       )}
 
       {/* Global Top Platform Bar */}
-      <header className="h-16 bg-white border-b border-slate-200 dark:bg-slate-900 dark:border-slate-800 px-8 sticky top-0 z-[100] flex items-center justify-between flex-shrink-0">
+      <header className="h-16 bg-white border-b border-slate-200 dark:bg-slate-900 dark:border-slate-800 px-8 z-[100] flex items-center justify-between flex-shrink-0">
         {/* Brand Signet */}
         <Logo size="sm" showText={true} />
 
@@ -915,7 +915,7 @@ export default function App() {
         {/* Dynamic Switchers & User Profile Indicator */}
         <div className="flex items-center gap-4">
           {/* Theme & Language switchers toolbar */}
-          <div className="flex items-center gap-1.5 border-r dark:border-slate-800 pr-4">
+          <div className="flex items-center gap-1.5 border-e dark:border-slate-800 pe-4">
             {/* Theme Toggler */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -936,7 +936,7 @@ export default function App() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 border-r dark:border-slate-850 pr-4">
+          <div className="flex items-center gap-3 border-e dark:border-slate-850 pe-4">
             <div className="text-right leading-none hidden sm:block">
               <p className="text-sm font-bold text-slate-850 dark:text-white">{user.name}</p>
               <p className="text-[10px] text-blue-600 bg-blue-50 dark:bg-slate-800 dark:text-blue-300 px-2 rounded-full font-medium inline-block mt-1">
@@ -960,10 +960,10 @@ export default function App() {
       </header>
 
       {/* Main Structural Layout split */}
-      <div className="flex-1 flex flex-col lg:flex-row relative">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* Navigation Sidebar Drawer for desktop screens */}
-        <aside className="hidden lg:flex flex-col bg-white dark:bg-slate-900 border-e border-slate-200 dark:border-slate-800 w-64 pt-6 p-4 shrink-0 space-y-4">
+        <aside className="hidden lg:flex flex-col bg-white dark:bg-slate-900 border-e border-slate-200 dark:border-slate-800 w-64 pt-6 p-4 shrink-0 space-y-4 overflow-y-auto">
           {/* Sidebar Brand */}
           <div className="px-3 pb-2 border-b border-slate-100 dark:border-slate-800">
             <Logo size="sm" showText={true} />
@@ -1083,7 +1083,7 @@ export default function App() {
         </aside>
 
         {/* Core Canvas Content wrapper */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full pb-28 lg:pb-12">
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden max-w-7xl mx-auto w-full pb-28 lg:pb-12">
           
           {/* ========================================== */}
           {/* VIEW: DASHBOARD (ADMIN & MANAGER)          */}
@@ -1658,14 +1658,14 @@ export default function App() {
             />
           )}
 
-        </main>
+          {/* Global Copyright Footer */}
+          <footer className="w-full text-center py-4 mt-8 border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
+            <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 tracking-wide">
+              © ABCH IT Team @2026 — ABC Hospital Survey System
+            </p>
+          </footer>
 
-        {/* Global Copyright Footer */}
-        <footer className="w-full text-center py-4 border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
-          <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 tracking-wide">
-            © ABCH IT Team @2026 — ABC Hospital Survey System
-          </p>
-        </footer>
+        </main>
       </div>
 
       {/* ========================================== */}
@@ -2439,7 +2439,7 @@ export default function App() {
       </div>
 
       {/* Floating Bottom Nav HUD Bar (Responsive Touch Screens & Tablets Mobile) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full z-150 flex justify-around items-center px-4 py-3 pb-safe bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-xl rounded-t-3xl">
+      <nav className="lg:hidden fixed bottom-0 start-0 w-full z-[150] flex justify-around items-center px-4 py-3 pb-safe bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-xl rounded-t-3xl">
         {/* Home option */}
         {user.role !== "Agent" && (
           <button
