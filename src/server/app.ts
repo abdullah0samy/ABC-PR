@@ -19,7 +19,12 @@ export function createApp() {
   app.use(helmet());
   app.use(
     cors({
-      origin: config.isProd ? (process.env.APP_URL ? [process.env.APP_URL] : false) : true,
+      origin: config.isProd
+        ? (() => {
+            const allowed = process.env.CORS_ORIGIN || process.env.APP_URL;
+            return allowed ? allowed.split(",").map((s) => s.trim()) : false;
+          })()
+        : true,
       credentials: true,
     }),
   );
