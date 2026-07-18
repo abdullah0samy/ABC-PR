@@ -3,10 +3,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  X,
-  AlertTriangle,
 } from "lucide-react";
-import { useArchive, useSurveyDetail, useDeleteSurvey } from "../hooks/useSurveys";
+import { useArchive } from "../hooks/useSurveys";
 import type { Survey, SurveyWithSatisfaction, User as UserType } from "../types";
 
 interface Props {
@@ -15,6 +13,8 @@ interface Props {
   setArchiveSearch: (v: string) => void;
   triggerNotification: (type: "success" | "error", text: string) => void;
   onEditSurvey: (survey: Survey) => void;
+  onViewDetail: (id: number) => void;
+  onDeleteSurvey: (id: number) => void;
 }
 
 export default function ArchivePage({
@@ -23,6 +23,8 @@ export default function ArchivePage({
   setArchiveSearch,
   triggerNotification,
   onEditSurvey,
+  onViewDetail,
+  onDeleteSurvey,
 }: Props) {
   const [archiveClinicType, setArchiveClinicType] = useState("الكل");
   const [archiveInterviewType, setArchiveInterviewType] = useState("الكل");
@@ -30,8 +32,6 @@ export default function ArchivePage({
   const [archiveStartDate, setArchiveStartDate] = useState("");
   const [archiveEndDate, setArchiveEndDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSurveyId, setSelectedSurveyId] = useState<number | null>(null);
-  const [surveyToDeleteId, setSurveyToDeleteId] = useState<number | null>(null);
 
   // When the external search box updates, reset pagination so the user sees
   // newest filtered results from page 1.
@@ -54,9 +54,6 @@ export default function ArchivePage({
   const totalPages = data?.pagination.totalPages ?? 1;
   const totalSurveysCount = data?.pagination.totalCount ?? 0;
 
-  const surveyDetailQuery = useSurveyDetail(selectedSurveyId);
-  const deleteSurvey = useDeleteSurvey();
-
   const clearArchiveFilters = () => {
     setArchiveClinicType("الكل");
     setArchiveInterviewType("الكل");
@@ -65,19 +62,6 @@ export default function ArchivePage({
     setArchiveEndDate("");
     setArchiveSearch("");
     setCurrentPage(1);
-  };
-
-  const handleDeleteSurvey = (id: number) => {
-    deleteSurvey.mutate(id, {
-      onSuccess: () => {
-        triggerNotification("success", "تم حذف الاستبيان بنجاح.");
-        setSurveyToDeleteId(null);
-      },
-      onError: (err: any) => {
-        triggerNotification("error", err.message);
-        setSurveyToDeleteId(null);
-      },
-    });
   };
 
   return (
@@ -225,7 +209,7 @@ export default function ArchivePage({
                   </span>
                 </div>
 
-                <button onClick={() => setSelectedSurveyId(survey.id)}
+                <button onClick={() => onViewDetail(survey.id)}
                   className="text-blue-600 hover:underline text-xs font-semibold flex items-center gap-1 group-hover:-translate-x-1 transition-transform duration-200">
                   <span>عرض الإجابات</span>
                   <ChevronLeft size={16} />
@@ -237,7 +221,7 @@ export default function ArchivePage({
                       className="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 text-[10px] font-bold cursor-pointer">
                       تعديل
                     </button>
-                    <button onClick={() => setSurveyToDeleteId(survey.id)}
+                    <button onClick={() => onDeleteSurvey(survey.id)}
                       className="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 text-[10px] font-bold cursor-pointer">
                       حذف
                     </button>
@@ -276,129 +260,6 @@ export default function ArchivePage({
               <ChevronLeft size={18} />
             </button>
           </nav>
-        </div>
-      )}
-
-      {/* Survey Detail Modal */}
-      {selectedSurveyId !== null && surveyDetailQuery.data && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/70">
-              <div className="text-right">
-                <h3 className="font-black text-sm text-[#0F172A] leading-tight">ملف التغذية الراجعة والشكوى للمريض</h3>
-                <span className="text-[10px] text-slate-400 font-bold block mt-0.5">الرقم الطبي: {surveyDetailQuery.data.survey.medicalNumber}</span>
-              </div>
-              <button onClick={() => setSelectedSurveyId(null)}
-                className="w-10 h-10 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors flex items-center justify-center cursor-pointer border border-transparent hover:border-red-100 active:scale-95">
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-6 custom-scrollbar text-xs">
-              {!surveyDetailQuery.data.survey.isSatisfied && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-[#ba1a1a] flex items-start gap-3">
-                  <AlertTriangle size={20} className="shrink-0 text-[#ba1a1a] mt-0.5 animate-bounce" />
-                  <div className="space-y-1 text-right">
-                    <p className="font-black">مريض مستاء - تتطلب التواصل الفوري السريع</p>
-                    <p className="text-[10.5px] font-medium leading-relaxed text-red-750">
-                      قامت أتمتة الـ Evolution API المتصلة بإصدار نموذج رسالة الاعتذار وتثبيت إشعار بالرقم الطبي لحل الشكوى في العلاقات العاصمة فوراً.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block">اسم المريض المستعلم</span>
-                  <span className="font-black text-slate-800 text-sm block">{surveyDetailQuery.data.survey.patientName}</span>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block">رقم وتفاصيل الاتصال</span>
-                  <span className="font-extrabold text-slate-800 text-sm block" dir="ltr">+{surveyDetailQuery.data.survey.phoneNumber}</span>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block">رقم الغرفة أو العيادة الخارجية</span>
-                  <span className="font-medium text-slate-800 block text-sm">{surveyDetailQuery.data.survey.roomNumber}</span>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block">الطبيب المعالج والمتابع الطبي</span>
-                  <span className="font-medium text-slate-800 block text-sm">{surveyDetailQuery.data.survey.doctorName}</span>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block">تاريخ المقابلة</span>
-                  <span className="font-medium text-slate-800 block text-sm">
-                    {new Date(surveyDetailQuery.data.survey.enterDate).toLocaleDateString("ar-SA", { year: "numeric", month: "long", day: "numeric" })}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-slate-400 font-bold block">طريقة ونوع المقابلة</span>
-                  <span className="font-extrabold text-[#00448c] block text-sm">
-                    {surveyDetailQuery.data.survey.interviewType === "Call" ? "مكالمة هاتفية (Call)" : "مقابلة حضورية داخل المستشفى"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="font-black text-slate-700 block">إجابات استبيان رضا الزائر المحددة:</h4>
-                <div className="space-y-3">
-                  {surveyDetailQuery.data.answers.map((ans, idx) => (
-                    <div key={ans.id} className="p-3.5 bg-sky-50/50 border border-sky-100 rounded-2xl flex items-center justify-between gap-4">
-                      <p className="font-bold text-slate-800 leading-normal">{idx + 1}. {ans.questionText}</p>
-                      <span className="bg-[#00448c] text-white font-extrabold px-3 py-1 rounded-full text-xs text-center whitespace-nowrap grow-0 shrink-0 select-none shadow">
-                        التقييم: {ans.score} / 5
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <div className="text-right">
-                  <p className="text-slate-400 font-bold">صافي مؤشر ترويج الزائر (NPS)</p>
-                  <p className="font-black text-slate-800 mt-0.5">هل يرشح المورد/المستشفى لأهله وأقربائه؟</p>
-                </div>
-                <span className={`px-4 py-2 rounded-2xl font-black ${
-                  surveyDetailQuery.data.survey.recommend === "Yes"
-                    ? "bg-emerald-50 text-[#10B981] border border-emerald-150"
-                    : "bg-red-50 text-[#ba1a1a] border border-red-150"
-                }`}>
-                  {surveyDetailQuery.data.survey.recommend === "Yes" ? "نعم، بكل تأكيد" : "لا ينطق بالتوصية"}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
-              <button onClick={() => setSelectedSurveyId(null)}
-                className="bg-[#00448c] text-white px-6 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer hover:bg-[#005bb7] active:scale-95 shadow">
-                إغلاق ملف التقييم
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete confirm modal */}
-      {surveyToDeleteId !== null && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-[#0F172A]/45 backdrop-blur-xs animate-in fade-in duration-200" role="dialog">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-4 animate-in zoom-in duration-200 text-right">
-            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2 justify-end">
-              <span className="p-1 px-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-bold leading-normal">تنبيه أمان</span>
-              <span>تأكيد حذف الاستبيان</span>
-            </h3>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              هل أنت متأكد تماماً من رغبتك في حذف هذا الاستبيان بالكامل؟ هذا الإجراء لا يمكن التراجع عنه وسيمحو كافة استجابات الرضا والدرجات المرتبطة به.
-            </p>
-            <div className="flex gap-3 pt-3">
-              <button type="button" onClick={() => handleDeleteSurvey(surveyToDeleteId)} disabled={deleteSurvey.isPending}
-                className="flex-1 h-10 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs cursor-pointer transition-all active:scale-95 shadow-sm disabled:opacity-60">
-                {deleteSurvey.isPending ? "جاري الحذف..." : "نعم، احذف الاستبيان"}
-              </button>
-              <button type="button" onClick={() => setSurveyToDeleteId(null)}
-                className="h-10 px-5 border border-slate-205 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 cursor-pointer transition-all">
-                إلغاء
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>

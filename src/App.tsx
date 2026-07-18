@@ -54,8 +54,9 @@ import {
 } from "./types";
 import { api, ApiError, getStoredUser, persistSession, clearSession } from "./api";
 import WhatsAppLogsView from "./pages/WhatsAppLogs";
-import CreateSurveyPage from "./pages/CreateSurveyPage";
 import ArchivePage from "./pages/ArchivePage";
+import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
+import { getCategoryArabic, getCategoryDisplay } from "./utils/categories";
 
 export default function App() {
   // Translate helper using our modular translations file
@@ -224,16 +225,7 @@ export default function App() {
   }, []);
 
   const getCategoryName = (catKey: string) => {
-    const cat = categories.find(c => c.nameEnglish.toLowerCase() === catKey.toLowerCase());
-    if (cat) {
-      return isEnglish ? cat.nameEnglish : cat.nameArabic;
-    }
-    // Simple Static Fallback Dictionary
-    if (catKey === "Medical") return isEnglish ? "Medical" : "طبي";
-    if (catKey === "Nursing") return isEnglish ? "Nursing" : "تمريض";
-    if (catKey === "Hospitality") return isEnglish ? "Hospitality" : "ضيافة";
-    if (catKey === "Security") return isEnglish ? "Security" : "أمن";
-    return catKey;
+    return getCategoryDisplay(catKey, categories, isEnglish);
   };
 
   // Survey Creation form states
@@ -533,6 +525,10 @@ export default function App() {
     }
   };
 
+  const handleExportPDF = () => {
+    window.print();
+  };
+
   // Export satisfaction data to Excel format (CSV with Arabic BOM UTF-8)
   const handleExportExcel = () => {
     if (!analytics) {
@@ -554,11 +550,7 @@ export default function App() {
     csvContent += "أولاً: أداء ومؤشرات الرضا التفصيلية للأقسام والخدمات\r\n";
     csvContent += "اسم القسم الطبي / الخدمي,الفئة العامة,التقييم الرقمي المتوسط (من 5),نسبة رضا القسم\r\n";
     analytics.departmentStats.forEach((stat) => {
-      const catArabic = 
-        stat.category === "Medical" ? "طبي" :
-        stat.category === "Nursing" ? "تمريض" :
-        stat.category === "Hospitality" ? "ضيافة" :
-        stat.category === "Security" ? "أمن" : stat.category;
+      const catArabic = getCategoryArabic(stat.category);
       csvContent += `"${stat.titleArabic}","${catArabic}",${stat.averageScore},${stat.averagePercent}%\r\n`;
     });
     csvContent += "\r\n";
@@ -964,11 +956,6 @@ export default function App() {
         
         {/* Navigation Sidebar Drawer for desktop screens */}
         <aside className="hidden lg:flex flex-col bg-white dark:bg-slate-900 border-e border-slate-200 dark:border-slate-800 w-64 pt-6 p-4 shrink-0 space-y-4 overflow-y-auto">
-          {/* Sidebar Brand */}
-          <div className="px-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Logo size="sm" showText={true} />
-          </div>
-
           <h3 className="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
             {t("systemNavTitle")}
           </h3>
@@ -1083,14 +1070,159 @@ export default function App() {
         </aside>
 
         {/* Core Canvas Content wrapper */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden max-w-7xl mx-auto w-full pb-28 lg:pb-12">
+        <main className="flex-1 flex flex-col p-6 md:p-8 overflow-y-auto overflow-x-hidden max-w-7xl mx-auto w-full pb-28 lg:pb-12">
+          
+          {/* View content — flex-1 pushes footer to bottom */}
+          <div className="flex-1">
           
           {/* ========================================== */}
           {/* VIEW: DASHBOARD (ADMIN & MANAGER)          */}
           {/* ========================================== */}
           {activeView === "dashboard" && user.role !== "Agent" && (
-            <div className="text-center py-20 text-gray-400">
-              <p>Dashboard view — pending extraction to component</p>
+            <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Dashboard Header */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white">{isEnglish ? "Analytics Dashboard" : "لوحة التحليلات"}</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{isEnglish ? "Patient satisfaction metrics overview" : "نظرة عامة على مقاييس رضا المرضى"}</p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={() => setQuickRange("today")} className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">{isEnglish ? "Today" : "اليوم"}</button>
+                  <button onClick={() => setQuickRange("week")} className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">{isEnglish ? "This Week" : "هذا الأسبوع"}</button>
+                  <button onClick={() => setQuickRange("month")} className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">{isEnglish ? "This Month" : "هذا الشهر"}</button>
+                  <button onClick={() => setQuickRange("last30")} className="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">{isEnglish ? "Last 30 Days" : "آخر 30 يوم"}</button>
+                  <button onClick={() => setQuickRange("all")} className="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all cursor-pointer">{isEnglish ? "All Time" : "الكل"}</button>
+                </div>
+              </div>
+
+              {/* Date Range + Clinic Filter */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+                <div className="flex flex-col sm:flex-row items-end gap-4">
+                  <div className="flex-1 w-full sm:w-auto">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{isEnglish ? "From" : "من تاريخ"}</label>
+                    <input type="date" value={statsStartDate} onChange={e => setStatsStartDate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-800 dark:text-white transition-all" />
+                  </div>
+                  <div className="flex-1 w-full sm:w-auto">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{isEnglish ? "To" : "إلى تاريخ"}</label>
+                    <input type="date" value={statsEndDate} onChange={e => setStatsEndDate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-800 dark:text-white transition-all" />
+                  </div>
+                  <div className="flex-1 w-full sm:w-auto">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{isEnglish ? "Clinic" : "العيادة"}</label>
+                    <select value={statsClinicType} onChange={e => setStatsClinicType(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-800 dark:text-white transition-all cursor-pointer">
+                      <option>{isEnglish ? "All Clinics" : "جميع العيادات"}</option>
+                      <option>{isEnglish ? "In-Patient" : "تنويم داخلي"}</option>
+                      <option>{isEnglish ? "Out-Patient" : "عيادات خارجية"}</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={handleExportExcel} className="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold cursor-pointer transition-all active:scale-95 shadow-sm flex items-center gap-1.5">
+                      <FileSpreadsheet size={14} /> Excel
+                    </button>
+                    <button onClick={handleExportPDF} className="h-9 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[10px] font-bold cursor-pointer transition-all active:scale-95 shadow-sm flex items-center gap-1.5">
+                      <FileText size={14} /> PDF
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {analytics ? (
+                <>
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{isEnglish ? "Total Surveys" : "إجمالي الاستبيانات"}</p>
+                      <p className="text-3xl font-black text-slate-800 dark:text-white mt-2">{analytics.totalSurveys}</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{isEnglish ? "Satisfaction Rate" : "نسبة الرضا"}</p>
+                      <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-2">{analytics.overallSatisfactionPercent}%</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{isEnglish ? "Satisfied" : "راضون"}</p>
+                      <p className="text-3xl font-black text-blue-600 dark:text-blue-400 mt-2">{analytics.satisfiedCount}</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/40 rounded-2xl p-5 shadow-xs">
+                      <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">{isEnglish ? "Unsatisfied" : "غير راضين"}</p>
+                      <p className="text-3xl font-black text-rose-600 dark:text-rose-400 mt-2">{analytics.unsatisfiedCount}</p>
+                    </div>
+                  </div>
+
+                  {/* Department Performance + Critical Cases */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Department Breakdown */}
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+                      <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+                        <h3 className="font-black text-sm text-slate-800 dark:text-white">{isEnglish ? "Department Performance" : "أداء الأقسام"}</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-right text-xs">
+                          <thead>
+                            <tr className="bg-slate-50 dark:bg-slate-800/50">
+                              <th className="px-4 py-3 font-bold text-slate-500">{isEnglish ? "Department" : "القسم"}</th>
+                              <th className="px-4 py-3 font-bold text-slate-500">{isEnglish ? "Avg Score" : "متوسط التقييم"}</th>
+                              <th className="px-4 py-3 font-bold text-slate-500">{isEnglish ? "Satisfaction" : "نسبة الرضا"}</th>
+                              <th className="px-4 py-3 font-bold text-slate-500">{isEnglish ? "Count" : "العدد"}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {analytics.departmentStats.length === 0 ? (
+                              <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">{isEnglish ? "No data available" : "لا توجد بيانات"}</td></tr>
+                            ) : analytics.departmentStats.map((stat, idx) => (
+                              <tr key={idx} className="border-t border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                <td className="px-4 py-3 font-bold text-slate-800 dark:text-white">{stat.titleArabic}</td>
+                                <td className="px-4 py-3">
+                                  <span className="bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full font-bold">{stat.averageScore.toFixed(1)} / 5</span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                      <div className={`h-full rounded-full ${stat.averagePercent >= 70 ? 'bg-emerald-500' : stat.averagePercent >= 40 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${Math.min(stat.averagePercent, 100)}%` }} />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-500 w-10 text-left">{stat.averagePercent}%</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-slate-500 font-medium">{stat.totalAnswersCount}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Critical Cases */}
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+                      <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <h3 className="font-black text-sm text-slate-800 dark:text-white">{isEnglish ? "Critical Cases" : "الحالات الحرجة"}</h3>
+                        {analytics.criticalCases.length > 0 && (
+                          <span className="bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">{analytics.criticalCases.length}</span>
+                        )}
+                      </div>
+                      <div className="overflow-y-auto max-h-80">
+                        {analytics.criticalCases.length === 0 ? (
+                          <div className="p-8 text-center text-slate-400 text-xs">{isEnglish ? "No critical cases" : "لا توجد حالات حرجة"}</div>
+                        ) : analytics.criticalCases.map((c) => (
+                          <div key={c.id} className="px-5 py-3 border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-bold text-slate-800 dark:text-white">{c.patientName}</p>
+                                <p className="text-[10px] text-slate-400 mt-0.5">{isEnglish ? "MRN" : "رقم طبي"}: <span dir="ltr">{c.medicalNumber}</span> · {c.doctorName}</p>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.followupStatus === "تم الحل" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                {c.followupStatus || (isEnglish ? "In Progress" : "قيد العمل")}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-20 text-slate-400">
+                  <BarChart3 size={40} className="mx-auto mb-3 opacity-40" />
+                  <p className="text-sm font-medium">{isEnglish ? "Loading analytics..." : "جاري تحميل البيانات..."}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -1326,7 +1458,7 @@ export default function App() {
                               {qIndex + 1}. {q.text}
                             </p>
                             <span className="bg-slate-200/60 text-slate-600 font-bold px-2.5 py-0.5 rounded-full text-[9px] uppercase shrink-0">
-                              {q.category === "Medical" ? "طبي" : q.category === "Nursing" ? "تمريض" : q.category === "Hospitality" ? "ضيافة" : "أمن"}
+                               {getCategoryName(q.category)}
                             </span>
                           </div>
 
@@ -1452,6 +1584,8 @@ export default function App() {
               setArchiveSearch={setArchiveSearch}
               triggerNotification={triggerNotification}
               onEditSurvey={setSurveyToEdit}
+              onViewDetail={loadSurveyDetail}
+              onDeleteSurvey={setSurveyToDeleteId}
             />
           )}
 
@@ -1529,7 +1663,7 @@ export default function App() {
                             <td className="px-6 py-4 font-semibold text-slate-700 leading-relaxed max-w-sm">{q.text}</td>
                             <td className="px-6 py-4">
                               <span className="bg-blue-50 text-[#00448c] font-bold px-2.5 py-0.5 rounded-full text-[10px]">
-                                {q.category === "Medical" ? "طبي" : q.category === "Nursing" ? "تمريض" : q.category === "Hospitality" ? "ضيافة" : "أمن"}
+                                {getCategoryName(q.category)}
                               </span>
                             </td>
                             <td className="px-6 py-4">
@@ -1657,9 +1791,10 @@ export default function App() {
               triggerNotification={triggerNotification}
             />
           )}
+          </div>
 
-          {/* Global Copyright Footer */}
-          <footer className="w-full text-center py-4 mt-8 border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
+          {/* Global Copyright Footer — sticks to bottom via flex */}
+          <footer className="w-full text-center py-4 mt-8 border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm shrink-0">
             <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 tracking-wide">
               © ABCH IT Team @2026 — ABC Hospital Survey System
             </p>
@@ -1879,108 +2014,54 @@ export default function App() {
       {/* CONFIRM QUESTION DELETE MODAL              */}
       {/* ========================================== */}
       {questionToDeleteId !== null && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-[#0F172A]/45 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-4 animate-in zoom-in duration-200 text-right">
-            <h3 className="font-extrabold text-lg text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2 justify-end">
-              <span className="p-1 px-2.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold leading-normal">تنبيه أمان</span>
-              <span>تأكيد حذف السؤال من النموذج</span>
-            </h3>
-            <p className="text-xs font-medium text-slate-500 leading-relaxed">
-              {isEnglish 
-                ? "Are you sure you want to delete this question? This action is irreversible." 
-                : "هل أنت متأكد تماماً من رغبتك في حذف هذا السؤال؟ سيؤدي هذا إلى إزالته الفورية من أي استبيانات مستهدفة قادمة."}
-            </p>
-            <div className="flex gap-3 pt-3">
-              <button
-                type="button"
-                onClick={confirmDeleteQuestion}
-                className="flex-1 h-10 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs cursor-pointer transition-all active:scale-95 shadow-sm"
-              >
-                {isEnglish ? "Confirm Delete" : "نعم، احذف السؤال"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuestionToDeleteId(null)}
-                className="h-10 px-5 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-500 cursor-pointer transition-all"
-              >
-                {isEnglish ? "Cancel" : "إلغاء"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDeleteModal
+          badge="تنبيه أمان"
+          title="تأكيد حذف السؤال من النموذج"
+          message={isEnglish
+            ? "Are you sure you want to delete this question? This action is irreversible."
+            : "هل أنت متأكد تماماً من رغبتك في حذف هذا السؤال؟ سيؤدي هذا إلى إزالته الفورية من أي استبيانات مستهدفة قادمة."}
+          confirmLabel={isEnglish ? "Confirm Delete" : "نعم، احذف السؤال"}
+          cancelLabel={isEnglish ? "Cancel" : "إلغاء"}
+          onConfirm={confirmDeleteQuestion}
+          onCancel={() => setQuestionToDeleteId(null)}
+        />
       )}
 
       {/* ========================================== */}
       {/* CONFIRM CATEGORY DELETE MODAL              */}
       {/* ========================================== */}
       {categoryToDeleteId !== null && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-[#0F172A]/45 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-4 animate-in zoom-in duration-200 text-right">
-            <h3 className="font-extrabold text-lg text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2 justify-end">
-              <span className="p-1 px-2.5 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold leading-normal">تأكيد حذف الفئة</span>
-              <span>تأكيد إزالة القسم الإداري</span>
-            </h3>
-            <p className="text-xs font-medium text-slate-500 leading-relaxed">
-              {isEnglish 
-                ? "Are you sure you want to delete this category? Any associated questions might fallback." 
-                : "هل أنت متأكد من رغبتك في حذف هذا القسم التقييمي المخصص؟ سيؤدي الحذف لتبديل مرجعيات أسئلتها المرتبطة تلقائياً."}
-            </p>
-            <div className="flex gap-3 pt-3">
-              <button
-                type="button"
-                onClick={confirmDeleteCategory}
-                className="flex-1 h-10 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs cursor-pointer transition-all active:scale-95 shadow-sm"
-              >
-                {isEnglish ? "Delete Now" : "موافق، احذف الفئة"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setCategoryToDeleteId(null)}
-                className="h-10 px-5 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-500 cursor-pointer transition-all"
-              >
-                {isEnglish ? "Cancel" : "إلغاء"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDeleteModal
+          badge="تأكيد حذف الفئة"
+          title="تأكيد إزالة القسم الإداري"
+          message={isEnglish
+            ? "Are you sure you want to delete this category? Any associated questions might fallback."
+            : "هل أنت متأكد من رغبتك في حذف هذا القسم التقييمي المخصص؟ سيؤدي الحذف لتبديل مرجعيات أسئلتها المرتبطة تلقائياً."}
+          confirmLabel={isEnglish ? "Delete Now" : "موافق، احذف الفئة"}
+          cancelLabel={isEnglish ? "Cancel" : "إلغاء"}
+          onConfirm={confirmDeleteCategory}
+          onCancel={() => setCategoryToDeleteId(null)}
+        />
       )}
 
       {/* ========================================== */}
       {/* CONFIRM SURVEY DELETE MODAL (ADMIN ONLY)   */}
       {/* ========================================== */}
       {surveyToDeleteId !== null && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-[#0F172A]/45 backdrop-blur-xs animate-in fade-in duration-200" role="dialog">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-4 animate-in zoom-in duration-200 text-right">
-            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2 justify-end">
-              <span className="p-1 px-2.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-bold leading-normal">تنبيه أمان</span>
-              <span>تأكيد حذف الاستبيان</span>
-            </h3>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              {isEnglish 
-                ? "Are you sure you want to delete this survey? This action is irreversible and will remove all scores." 
-                : "هل أنت متأكد تماماً من رغبتك في حذف هذا الاستبيان بالكامل؟ هذا الإجراء لا يمكن التراجع عنه وسيمحو كافة استجابات الرضا والدرجات المرتبطة به."}
-            </p>
-            <div className="flex gap-3 pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  handleDeleteSurvey(surveyToDeleteId);
-                  setSurveyToDeleteId(null);
-                }}
-                className="flex-1 h-10 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs cursor-pointer transition-all active:scale-95 shadow-sm"
-              >
-                {isEnglish ? "Confirm Delete" : "نعم، احذف الاستبيان"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSurveyToDeleteId(null)}
-                className="h-10 px-5 border border-slate-205 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 cursor-pointer transition-all"
-              >
-                {isEnglish ? "Cancel" : "إلغاء"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDeleteModal
+          badge="تنبيه أمان"
+          title="تأكيد حذف الاستبيان"
+          message={isEnglish
+            ? "Are you sure you want to delete this survey? This action is irreversible and will remove all scores."
+            : "هل أنت متأكد تماماً من رغبتك في حذف هذا الاستبيان بالكامل؟ هذا الإجراء لا يمكن التراجع عنه وسيمحو كافة استجابات الرضا والدرجات المرتبطة به."}
+          confirmLabel={isEnglish ? "Confirm Delete" : "نعم، احذف الاستبيان"}
+          cancelLabel={isEnglish ? "Cancel" : "إلغاء"}
+          onConfirm={() => {
+            handleDeleteSurvey(surveyToDeleteId);
+            setSurveyToDeleteId(null);
+          }}
+          onCancel={() => setSurveyToDeleteId(null)}
+        />
       )}
 
       {/* ========================================== */}
@@ -2352,11 +2433,7 @@ export default function App() {
               </thead>
               <tbody className="divide-y divide-slate-150">
                 {analytics.departmentStats.map((stat, i) => {
-                  const catArabic = 
-                    stat.category === "Medical" ? "طبي" :
-                    stat.category === "Nursing" ? "تمريض" :
-                    stat.category === "Hospitality" ? "ضيافة" :
-                    stat.category === "Security" ? "أمن" : stat.category;
+                  const catArabic = getCategoryArabic(stat.category);
                   return (
                     <tr key={i} className="hover:bg-slate-50">
                       <td className="px-4 py-2 text-slate-800 font-extrabold text-right">{stat.titleArabic}</td>
@@ -2480,7 +2557,7 @@ export default function App() {
         {/* Admins Templates option */}
         {user.role === "Admin" && (
           <button
-            onClick={() => { setActiveView("questions"); fetchQuestions(); }}
+            onClick={() => { setActiveView("questions"); refreshData("questions"); }}
             className={`flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
               activeView === "questions" ? "text-[#00448c] dark:text-blue-400 font-black" : "text-slate-400 dark:text-slate-505 hover:text-slate-600 dark:hover:text-slate-300"
             }`}

@@ -2,6 +2,38 @@ import type { Request, Response, NextFunction } from "express";
 import type { ZodTypeAny } from "zod";
 import { ZodError } from "zod";
 
+const FIELD_LABELS: Record<string, string> = {
+  username: "Username",
+  password: "Password",
+  patientName: "Patient name",
+  medicalNumber: "Medical number (MRN)",
+  phoneNumber: "Phone number",
+  doctorName: "Doctor name",
+  roomNumber: "Room number",
+  clinicType: "Clinic type",
+  interviewType: "Interview type",
+  isSatisfied: "Satisfaction status",
+  recommend: "Recommendation",
+  enterDate: "Entry date",
+  templateId: "Template",
+  text: "Question text",
+  category: "Category",
+  priority: "Priority",
+  answers: "Answers",
+  score: "Score",
+  questionId: "Question",
+  nameArabic: "Arabic name",
+  nameEnglish: "English name",
+  name: "Name",
+  email: "Email",
+  role: "Role",
+  startDate: "Start date",
+  endDate: "End date",
+  search: "Search",
+  page: "Page",
+  limit: "Limit",
+};
+
 export interface ValidationSchemas {
   body?: ZodTypeAny;
   query?: ZodTypeAny;
@@ -17,7 +49,6 @@ export function validate(schemas: ValidationSchemas) {
       }
       if (schemas.query) {
         const parsed = schemas.query.parse(req.query);
-        // Replace Express query with the parsed object (typed by schema).
         (req as any).query = parsed;
       }
       if (schemas.params) {
@@ -29,9 +60,12 @@ export function validate(schemas: ValidationSchemas) {
       if (err instanceof ZodError) {
         const issues = (err as any).issues ?? [];
         const first = issues[0];
-        const message = first
-          ? `${(first.path ?? []).join(".") || "value"}: ${first.message ?? "Validation failed"}`
-          : "Validation failed";
+        let message = "Validation failed";
+        if (first) {
+          const rawField = (first.path ?? []).join(".");
+          const friendlyName = FIELD_LABELS[rawField] || rawField || "Input";
+          message = `${friendlyName}: ${first.message ?? "Invalid value"}`;
+        }
         res.status(400).json({ error: message, details: issues });
         return;
       }

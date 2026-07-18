@@ -11,6 +11,7 @@ import {
 import { COUNTRIES } from "../constants";
 import { useQuestions } from "../hooks/useQuestions";
 import { useCreateSurvey } from "../hooks/useSurveys";
+import { getCategoryArabic } from "../utils/categories";
 import type { User as UserType, Question } from "../types";
 
 interface Props {
@@ -250,7 +251,7 @@ export default function CreateSurveyPage({
                   <div className="flex items-start justify-between gap-4">
                     <p className="text-xs font-semibold text-slate-800 leading-normal">{qIndex + 1}. {q.text}</p>
                     <span className="bg-slate-200/60 text-slate-600 font-bold px-2.5 py-0.5 rounded-full text-[9px] uppercase shrink-0">
-                      {q.category === "Medical" ? "طبي" : q.category === "Nursing" ? "تمريض" : q.category === "Hospitality" ? "ضيافة" : "أمن"}
+                      {getCategoryArabic(q.category)}
                     </span>
                   </div>
 
